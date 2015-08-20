@@ -28,8 +28,13 @@ import java.net.SocketException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -60,51 +65,68 @@ public class NotificationListener extends NotificationListenerService {
 	@Override
 	public void onListenerConnected() {
 		for (StatusBarNotification sbn : getActiveNotifications()) {
-			log.debug("Active notification:");
-			logNotification(sbn);
+			if (log.isDebugEnabled()) {
+				log.debug("Active notification:");
+				logNotification(sbn);
+			}
 			processNotification(sbn);
 		}
 	}
 
 	@Override
 	public void onNotificationPosted(StatusBarNotification sbn) {
-		log.debug("Notification posted:");
-		logNotification(sbn);
+		if (log.isDebugEnabled()) {
+			log.debug("Notification posted:");
+			logNotification(sbn);
+		}
 		processNotification(sbn);
 	}
 
 	@Override
 	public void onNotificationRemoved(StatusBarNotification sbn) {
-		log.debug("Notification removed:");
-		logNotification(sbn);
+		if (log.isDebugEnabled()) {
+			log.debug("Notification removed:");
+			logNotification(sbn);
+		}
 	}
 
 	private void logNotification(StatusBarNotification sbn) {
 		Notification n = sbn.getNotification();
-		if (log.isDebugEnabled())
-			log.debug(" {}/{}@{}: category={} icon={} tickerText={}", sbn.getId(), sbn.getPackageName(), sbn.getPostTime(), n.category, n.icon, n.tickerText);
+		log.debug(" {}/{}@{}: category={} icon={} tickerText={}", sbn.getId(), sbn.getPackageName(), sbn.getPostTime(), n.category, n.icon, n.tickerText);
 	}
 
 	private void processNotification(StatusBarNotification sbn) {
+		if (!prefs.enabled().get())
+			return;
+
 		Notification n = sbn.getNotification();
 		if (n.icon == android.R.drawable.stat_notify_missed_call) {
 			log.debug("  Missed call notification");
-			new SendEmail("Missed phone call", new Date(sbn.getPostTime())).start();
-		} else if (n.category != null && n.category.equals(Notification.CATEGORY_MESSAGE) && sbn.getPackageName().equals("com.google.android.talk")) {
+			sendEmail("Missed phone call", sbn);
+		} else if (Notification.CATEGORY_MESSAGE.equals(n.category) && sbn.getPackageName().equals("com.google.android.talk")) {
 			log.debug("  Message notification");
-			new SendEmail("Message received", new Date(sbn.getPostTime())).start();
+			sendEmail("Message received", sbn);
 		}
+	}
+
+	private void sendEmail(String text, StatusBarNotification sbn) {
+		SendEmail se = new SendEmail(text, new Date(sbn.getPostTime()));
+		if (se.isEnabled())
+			new Thread(se).start();
 	}
 
 	@UiThread
 	void makeToast(String text) {
-		Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), getString(R.string.app_name) + ": " + text, Toast.LENGTH_SHORT).show();
 	}
 
-	private class SendEmail extends Thread {
+	private class SendEmail implements Runnable {
 		private String message;
 		private Date ts;
 
+		private Set<String> days = prefs.days().get();
+		private String startTime = prefs.startTime().get();
+		private String stopTime = prefs.stopTime().get();
 		private String node = prefs.node().get();
 		private String service = prefs.service().get();
 		private String username = prefs.username().get();
@@ -117,49 +139,120 @@ public class NotificationListener extends NotificationListenerService {
 			this.ts = ts;
 		}
 
-		public void run() {
+		public boolean isEnabled() {
+			Calendar c = Calendar.getInstance(Locale.ENGLISH);
+			c.setTime(ts);
+			if (days.contains(String.valueOf(c.get(Calendar.DAY_OF_WEEK)))) {
+				if (log.isDebugEnabled())
+					log.debug("days match: {} in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray(new String[0])));
+			} else {
+				if (log.isDebugEnabled())
+					log.debug("days mismatch: {} not in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray(new String[0])));
+				return false;
+			}
+
+			if (startTime.isEmpty()) {
+				log.warn("startTime missing");
+				makeToast(getString(R.string.pref_start_time_missing));
+				return false;
+			}
+
+			Calendar cStart = Calendar.getInstance(Locale.ENGLISH);
+			try {
+				cStart.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(startTime));
+			} catch (ParseException e) {
+				log.warn("startTime invalid: {}", startTime);
+				makeToast(getString(R.string.pref_start_time_invalid));
+				return false;
+			}
+
+			if ((c.get(Calendar.HOUR_OF_DAY) == cStart.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.MINUTE) >= cStart.get(Calendar.MINUTE))
+					|| c.get(Calendar.HOUR_OF_DAY) > cStart.get(Calendar.HOUR_OF_DAY)) {
+				if (log.isDebugEnabled())
+					log.debug("startTime match: {} {} >= {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStart.get(Calendar.HOUR_OF_DAY),
+							cStart.get(Calendar.MINUTE));
+			} else {
+				if (log.isDebugEnabled())
+					log.debug("startTime mismatch: {} {} < {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStart.get(Calendar.HOUR_OF_DAY),
+							cStart.get(Calendar.MINUTE));
+				return false;
+			}
+
+			if (stopTime.isEmpty()) {
+				log.warn("stopTime missing");
+				makeToast(getString(R.string.pref_stop_time_missing));
+				return false;
+			}
+
+			Calendar cStop = Calendar.getInstance(Locale.ENGLISH);
+			try {
+				cStop.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(stopTime));
+			} catch (ParseException e) {
+				log.warn("stopTime invalid: {}", startTime);
+				makeToast(getString(R.string.pref_stop_time_invalid));
+				return false;
+			}
+
+			if ((c.get(Calendar.HOUR_OF_DAY) == cStop.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.MINUTE) <= cStop.get(Calendar.MINUTE))
+					|| c.get(Calendar.HOUR_OF_DAY) < cStop.get(Calendar.HOUR_OF_DAY)) {
+				if (log.isDebugEnabled())
+					log.debug("stopTime match: {} {} <= {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStop.get(Calendar.HOUR_OF_DAY),
+							cStop.get(Calendar.MINUTE));
+			} else {
+				if (log.isDebugEnabled())
+					log.debug("stopTime mismatch: {} {} > {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStop.get(Calendar.HOUR_OF_DAY),
+							cStop.get(Calendar.MINUTE));
+				return false;
+			}
+
 			if (node.isEmpty()) {
 				log.warn("node missing");
 				makeToast(getString(R.string.pref_node_missing));
-				return;
+				return false;
 			}
 
 			if (service.isEmpty()) {
 				log.warn("service missing");
 				makeToast(getString(R.string.pref_service_missing));
-				return;
+				return false;
 			}
 
 			if (username.isEmpty()) {
 				log.warn("username missing");
 				makeToast(getString(R.string.pref_username_missing));
-				return;
+				return false;
 			}
 
 			if (password.isEmpty()) {
 				log.warn("password missing");
 				makeToast(getString(R.string.pref_password_missing));
-				return;
+				return false;
 			}
 
 			if (sender.isEmpty()) {
 				log.warn("sender missing");
 				makeToast(getString(R.string.pref_sender_missing));
-				return;
+				return false;
 			}
 
 			if (recipients.length == 0) {
 				log.warn("recipients missing");
 				makeToast(getString(R.string.pref_recipients_missing));
-				return;
+				return false;
 			}
 
+			return true;
+		}
+
+		private static final int ATTEMPTS = 3;
+
+		public void run() {
 			PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
 			PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getCanonicalName());
 			wl.acquire();
 			try {
 				synchronized (SendEmail.class) {
-					for (int i = 0; i < 3; i++) {
+					for (int i = 0; i < ATTEMPTS; i++) {
 						boolean ok = false;
 
 						try {
@@ -171,6 +264,14 @@ public class NotificationListener extends NotificationListenerService {
 
 						if (ok)
 							break;
+
+						if (i + 1 < ATTEMPTS) {
+							try {
+								Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
+							} catch (InterruptedException e) {
+								log.warn("Interrupted while sleeping", e);
+							}
+						}
 					}
 				}
 			} finally {
@@ -208,6 +309,8 @@ public class NotificationListener extends NotificationListenerService {
 				}
 
 				if (client.execTLS()) {
+					log.info("STARTTLS: {}", client.getReplyString());
+
 					client.ehlo(helo);
 					if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
 						log.info("EHLO: {}", client.getReplyStrings()[0]);
@@ -279,6 +382,7 @@ public class NotificationListener extends NotificationListenerService {
 						return false;
 					}
 				} else {
+					log.error("STARTTLS: {}", client.getReplyString());
 					throw new IOException("STARTTLS failed");
 				}
 

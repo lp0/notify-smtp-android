@@ -21,21 +21,44 @@
     <string name="app_name">Notify Email</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_access">Notification Access</string>
+    
+    <string name="pref_enabled_title">Enabled</string>
+    <string name="pref_enabled_summary_on">Send email for notifications</string>
+    <string name="pref_enabled_summary_off">Don\'t send email for notifications</string>
+    
+    <string name="pref_days_title">Active days</string>
+    <string name="pref_days_summary">Days to send emails</string>
+    
+    <string name="pref_start_time_title">Start time</string>
+    <string name="pref_start_time_summary">Start of time period to send emails</string>
+    <string name="pref_start_time_missing">Start time not configured</string>
+    <string name="pref_start_time_invalid">Start time invalid</string>
+    
+    <string name="pref_stop_time_title">End time</string>
+    <string name="pref_stop_time_summary">End of time period to send emails</string>
+    <string name="pref_stop_time_missing">End time not configured</string>
+    <string name="pref_stop_time_invalid">End time invalid</string>
+    
     <string name="pref_node_title">Node</string>
     <string name="pref_node_summary">Hostname to connect to</string>
     <string name="pref_node_missing">Node not configured</string>
+    
     <string name="pref_service_title">Service</string>
     <string name="pref_service_summary">Port to connect to</string>
     <string name="pref_service_missing">Service not configured</string>
+    
     <string name="pref_username_title">Username</string>
     <string name="pref_username_summary">Username to authenticate as</string>
     <string name="pref_username_missing">Username not configured</string>
+    
     <string name="pref_password_title">Password</string>
     <string name="pref_password_summary">Password to authenticate with</string>
     <string name="pref_password_missing">Password not configured</string>
+    
     <string name="pref_sender_title">Email sender</string>
     <string name="pref_sender_summary">Email address to send from</string>
     <string name="pref_sender_missing">Email sender not configured</string>
+    
     <string name="pref_recipients_title">Email recipients</string>
     <string name="pref_recipients_summary">Email addresses to send to</string>
     <string name="pref_recipients_missing">Email recipients not configured</string>

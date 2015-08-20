@@ -18,6 +18,29 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<CheckBoxPreference 
+		android:key="enabled"
+		android:summaryOn="@string/pref_enabled_summary_on"
+		android:summaryOff="@string/pref_enabled_summary_off"
+		android:title="@string/pref_enabled_title"/>
+	
+	<MultiSelectListPreference
+		android:key="days"
+		android:entries="@array/pref_days_entries"
+		android:entryValues="@array/pref_days_entry_values"
+		android:summary="@string/pref_days_summary"
+		android:title="@string/pref_days_title" />
+	
+	<EditTextPreference
+		android:key="startTime"
+		android:summary="@string/pref_start_time_summary"
+		android:title="@string/pref_start_time_title"/>
+	
+	<EditTextPreference
+		android:key="stopTime"
+		android:summary="@string/pref_stop_time_summary"
+		android:title="@string/pref_stop_time_title"/>
+	
 	<EditTextPreference
 		android:key="node"
 		android:summary="@string/pref_node_summary"
