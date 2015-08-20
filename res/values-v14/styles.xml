@@ -25,10 +25,5 @@
 	-->
 	<style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
 		<!-- API 14 theme customizations can go here. -->
-		<item name="android:actionBarStyle">@style/AppActionBarStyle</item>
-	</style>
-
-	<style name="AppActionBarStyle" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
-		<item name="android:background">@color/orangedark</item>
 	</style>
 </resources>
