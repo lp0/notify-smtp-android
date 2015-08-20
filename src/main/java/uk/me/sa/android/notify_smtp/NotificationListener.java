@@ -185,9 +185,9 @@ public class NotificationListener extends NotificationListenerService {
 			client.setSoTimeout((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
 			try {
 				if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-					log.info("connect: {}", client.getReplyString());
+					log.info("CONN: {}", client.getReplyString());
 				} else {
-					log.error("connect: {}", client.getReplyString());
+					log.error("CONN: {}", client.getReplyString());
 					return false;
 				}
 
