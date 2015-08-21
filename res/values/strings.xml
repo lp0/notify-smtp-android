@@ -43,9 +43,9 @@
     <string name="pref_node_summary">Hostname to connect to</string>
     <string name="pref_node_missing">Node not configured</string>
     
-    <string name="pref_service_title">Service</string>
-    <string name="pref_service_summary">Port to connect to</string>
-    <string name="pref_service_missing">Service not configured</string>
+    <string name="pref_port_title">Port</string>
+    <string name="pref_port_summary">Port to connect to</string>
+    <string name="pref_port_missing">Port not configured</string>
     
     <string name="pref_username_title">Username</string>
     <string name="pref_username_summary">Username to authenticate as</string>
@@ -62,4 +62,7 @@
     <string name="pref_recipients_title">Email recipients</string>
     <string name="pref_recipients_summary">Email addresses to send to</string>
     <string name="pref_recipients_missing">Email recipients not configured</string>
+    
+    <string name="email_missed_call_notification">Missed phone call</string>
+    <string name="email_message_notification">Message received</string>
 </resources>

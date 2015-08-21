@@ -35,7 +35,7 @@ public interface Prefs {
 
 	String node();
 
-	String service();
+	int port();
 
 	String username();
 
