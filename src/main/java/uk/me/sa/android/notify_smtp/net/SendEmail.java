@@ -249,7 +249,7 @@ public class SendEmail implements Runnable {
 					return false;
 				}
 
-				client.auth(AuthenticatingSMTPClient.AUTH_METHOD.PLAIN, username, password);
+				client.auth(AuthenticatingSMTPClient.AUTH_METHOD.CRAM_MD5, username, password);
 				if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
 					log.info("AUTH: {}", client.getReplyString());
 				} else {
