@@ -313,7 +313,7 @@ public class SendEmail implements Runnable {
 				}
 			} else {
 				log.error("STARTTLS: {}", client.getReplyString());
-				throw new IOException("STARTTLS failed");
+				return false;
 			}
 
 			client.logout();
