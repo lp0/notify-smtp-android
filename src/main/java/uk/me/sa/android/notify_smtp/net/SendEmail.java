@@ -30,7 +30,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -54,7 +53,9 @@ import android.os.PowerManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class SendEmail implements Runnable {
-	private static final HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+	private static final HostnameVerifier HOSTNAME_VERIFIER = HttpsURLConnection.getDefaultHostnameVerifier();
+	private static final int ATTEMPTS = 3;
+	private static final int TIMEOUT_MS = (int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
 	private Logger log = LoggerFactory.getLogger(SendEmail.class);
 
@@ -88,65 +89,14 @@ public class SendEmail implements Runnable {
 		recipients = prefs.recipients().get().split(" ");
 	}
 
-	public boolean isActive() {
-		Calendar c = Calendar.getInstance(Locale.ENGLISH);
-		c.setTime(ts);
-		if (days.contains(String.valueOf(c.get(Calendar.DAY_OF_WEEK)))) {
-			if (log.isDebugEnabled())
-				log.debug("days match: {} in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray()));
-		} else {
-			if (log.isDebugEnabled())
-				log.debug("days mismatch: {} not in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray()));
-			return false;
-		}
-
+	public boolean hasAllPrefs() {
 		if (startTime.isEmpty()) {
 			log.warn("startTime missing");
 			return false;
 		}
 
-		Calendar cStart = Calendar.getInstance(Locale.ENGLISH);
-		try {
-			cStart.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(startTime));
-		} catch (ParseException e) {
-			log.warn("startTime invalid: {}", startTime);
-			return false;
-		}
-
-		if ((c.get(Calendar.HOUR_OF_DAY) == cStart.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.MINUTE) >= cStart.get(Calendar.MINUTE))
-				|| c.get(Calendar.HOUR_OF_DAY) > cStart.get(Calendar.HOUR_OF_DAY)) {
-			if (log.isDebugEnabled())
-				log.debug("startTime match: {} {} >= {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStart.get(Calendar.HOUR_OF_DAY),
-						cStart.get(Calendar.MINUTE));
-		} else {
-			if (log.isDebugEnabled())
-				log.debug("startTime mismatch: {} {} < {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStart.get(Calendar.HOUR_OF_DAY),
-						cStart.get(Calendar.MINUTE));
-			return false;
-		}
-
 		if (stopTime.isEmpty()) {
 			log.warn("stopTime missing");
-			return false;
-		}
-
-		Calendar cStop = Calendar.getInstance(Locale.ENGLISH);
-		try {
-			cStop.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(stopTime));
-		} catch (ParseException e) {
-			log.warn("stopTime invalid: {}", startTime);
-			return false;
-		}
-
-		if ((c.get(Calendar.HOUR_OF_DAY) == cStop.get(Calendar.HOUR_OF_DAY) && c.get(Calendar.MINUTE) <= cStop.get(Calendar.MINUTE))
-				|| c.get(Calendar.HOUR_OF_DAY) < cStop.get(Calendar.HOUR_OF_DAY)) {
-			if (log.isDebugEnabled())
-				log.debug("stopTime match: {} {} <= {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStop.get(Calendar.HOUR_OF_DAY),
-						cStop.get(Calendar.MINUTE));
-		} else {
-			if (log.isDebugEnabled())
-				log.debug("stopTime mismatch: {} {} > {} {}", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), cStop.get(Calendar.HOUR_OF_DAY),
-						cStop.get(Calendar.MINUTE));
 			return false;
 		}
 
@@ -183,7 +133,64 @@ public class SendEmail implements Runnable {
 		return true;
 	}
 
-	private static final int ATTEMPTS = 3;
+	public boolean isActive() {
+		if (!hasAllPrefs())
+			return false;
+
+		Calendar cEvent = Calendar.getInstance(Locale.ENGLISH);
+		cEvent.setTime(ts);
+		final int dowEvent = cEvent.get(Calendar.DAY_OF_WEEK);
+		final int hEvent = cEvent.get(Calendar.HOUR_OF_DAY);
+		final int mEvent = cEvent.get(Calendar.MINUTE);
+		if (days.contains(String.valueOf(dowEvent))) {
+			if (log.isDebugEnabled())
+				log.debug("days match: {} in {}", dowEvent, days.toArray());
+		} else {
+			if (log.isDebugEnabled())
+				log.debug("days mismatch: {} not in {}", dowEvent, days.toArray());
+			return false;
+		}
+
+		Calendar cStart = Calendar.getInstance(Locale.ENGLISH);
+		try {
+			cStart.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(startTime));
+		} catch (ParseException e) {
+			log.warn("startTime invalid: {}", startTime);
+			return false;
+		}
+		final int hStart = cStart.get(Calendar.HOUR_OF_DAY);
+		final int mStart = cStart.get(Calendar.MINUTE);
+
+		if ((hEvent == hStart && mEvent >= mStart) || hEvent > hStart) {
+			if (log.isDebugEnabled())
+				log.debug("startTime match: {} {} >= {} {}", hEvent, mEvent, hStart, mStart);
+		} else {
+			if (log.isDebugEnabled())
+				log.debug("startTime mismatch: {} {} < {} {}", hEvent, mEvent, hStart, mStart);
+			return false;
+		}
+
+		Calendar cStop = Calendar.getInstance(Locale.ENGLISH);
+		try {
+			cStop.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(stopTime));
+		} catch (ParseException e) {
+			log.warn("stopTime invalid: {}", startTime);
+			return false;
+		}
+		final int hStop = cStop.get(Calendar.HOUR_OF_DAY);
+		final int mStop = cStop.get(Calendar.MINUTE);
+
+		if ((hEvent == hStop && mEvent <= mStop) || hEvent < hStop) {
+			if (log.isDebugEnabled())
+				log.debug("stopTime match: {} {} <= {} {}", hEvent, mEvent, hStop, mStop);
+		} else {
+			if (log.isDebugEnabled())
+				log.debug("stopTime mismatch: {} {} > {} {}", hEvent, mEvent, hStop, mStop);
+			return false;
+		}
+
+		return true;
+	}
 
 	@SuppressFBWarnings("SWL_SLEEP_WITH_LOCK_HELD")
 	public void run() {
@@ -225,14 +232,14 @@ public class SendEmail implements Runnable {
 			public boolean execTLS() throws IOException {
 				boolean ret = super.execTLS();
 				// Android does not support SSLParameters.setEndpointIdentificationAlgorithm("HTTPS") and the TrustManager is insecure by default
-				if (ret && !hostnameVerifier.verify(node, ((SSLSocket)_socket_).getSession()))
+				if (ret && !HOSTNAME_VERIFIER.verify(node, ((SSLSocket)_socket_).getSession()))
 					throw new SSLException("Hostname doesn't match certificate");
 				return ret;
 			}
 		};
-		client.setDefaultTimeout((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
+		client.setDefaultTimeout(TIMEOUT_MS);
 		client.connect(node, port);
-		client.setSoTimeout((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
+		client.setSoTimeout(TIMEOUT_MS);
 		try {
 			if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
 				log.info("CONN: {}", client.getReplyString());
