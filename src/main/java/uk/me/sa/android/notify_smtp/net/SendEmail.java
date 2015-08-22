@@ -19,9 +19,6 @@
 package uk.me.sa.android.notify_smtp.net;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -34,12 +31,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSocket;
-
-import org.apache.commons.net.smtp.AuthenticatingSMTPClient;
+import org.apache.commons.net.smtp.AuthenticatingSMTPClient.AUTH_METHOD;
 import org.apache.commons.net.smtp.SMTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +41,6 @@ import uk.me.sa.android.notify_smtp.data.Prefs_;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class SendEmail implements Runnable {
-	private static final HostnameVerifier HOSTNAME_VERIFIER = HttpsURLConnection.getDefaultHostnameVerifier();
 	private static final int ATTEMPTS = 3;
 	private static final int TIMEOUT_MS = (int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
@@ -191,100 +182,31 @@ public class SendEmail implements Runnable {
 	}
 
 	private boolean send() throws NoSuchAlgorithmException, SocketException, IOException, InvalidKeyException, InvalidKeySpecException {
-		AuthenticatingSMTPClient client = new AuthenticatingSMTPClient() {
-			@SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-			@Override
-			public boolean execTLS() throws IOException {
-				boolean ret = super.execTLS();
-				// Android does not support SSLParameters.setEndpointIdentificationAlgorithm("HTTPS") and the TrustManager is insecure by default
-				if (ret && !HOSTNAME_VERIFIER.verify(node, ((SSLSocket)_socket_).getSession()))
-					throw new SSLException("Hostname doesn't match certificate");
-				return ret;
-			}
-		};
+		AuthSMTPTLSClient client = new AuthSMTPTLSClient();
 		client.setDefaultTimeout(TIMEOUT_MS);
 		client.connect(node, port);
 		client.setSoTimeout(TIMEOUT_MS);
 		try {
-			if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-				log.info("CONN: {}", client.getReplyString());
-			} else {
-				log.error("CONN: {}", client.getReplyString());
+			if (!SMTPReply.isPositiveCompletion(client.getReplyCode()))
 				return false;
-			}
 
-			String helo = "android.invalid";
-			InetAddress addr = client.getLocalAddress();
-			if (addr instanceof Inet4Address) {
-				helo = "[" + addr.getHostAddress() + "]";
-			} else if (addr instanceof Inet6Address) {
-				helo = "[IPv6:" + addr.getHostAddress() + "]";
-			}
-
-			client.ehlo(helo);
-			if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-				log.info("EHLO: {}", client.getReplyStrings()[0]);
-			} else {
-				log.error("EHLO: {}", client.getReplyString());
+			if (!client.elogin() || !client.execTLS())
 				return false;
-			}
 
-			if (client.execTLS()) {
-				log.info("STARTTLS: {}", client.getReplyString());
-
-				client.ehlo(helo);
-				if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-					log.info("EHLO: {}", client.getReplyStrings()[0]);
-				} else {
-					log.error("EHLO: {}", client.getReplyString());
-					return false;
-				}
-
-				client.auth(AuthenticatingSMTPClient.AUTH_METHOD.CRAM_MD5, username, password);
-				if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-					log.info("AUTH: {}", client.getReplyString());
-				} else {
-					log.error("AUTH: {}", client.getReplyString());
-					return false;
-				}
-
-				client.setSender(sender);
-				if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-					log.info("MAIL: {}", client.getReplyString());
-				} else {
-					log.error("MAIL: {}", client.getReplyString());
-					return false;
-				}
-
-				for (String recipient : recipients) {
-					client.addRecipient(recipient);
-					if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-						log.info("RCPT: {}", client.getReplyString());
-					} else {
-						log.error("RCPT: {}", client.getReplyString());
-						return false;
-					}
-				}
-
-				if (client.sendShortMessageData(new Message(message, ts, sender, recipients).toString())) {
-					log.info("DATA: {}", client.getReplyString());
-				} else {
-					log.error("DATA: {}", client.getReplyString());
-					return false;
-				}
-			} else {
-				log.error("STARTTLS: {}", client.getReplyString());
+			if (!client.elogin() || !client.auth(AUTH_METHOD.PLAIN, username, password))
 				return false;
-			}
 
-			client.logout();
-			if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
-				log.info("QUIT: {}", client.getReplyString());
-				return true;
-			} else {
-				log.warn("QUIT: {}", client.getReplyString());
+			if (!client.setSender(sender))
 				return false;
-			}
+
+			for (String recipient : recipients)
+				if (!client.addRecipient(recipient))
+					return false;
+
+			if (!client.sendShortMessageData(new Message(message, ts, sender, recipients).toString()))
+				return false;
+
+			return client.logout();
 		} finally {
 			try {
 				client.disconnect();
