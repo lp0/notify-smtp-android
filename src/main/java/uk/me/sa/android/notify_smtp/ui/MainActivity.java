@@ -22,8 +22,6 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.sharedpreferences.Pref;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import uk.me.sa.android.notify_smtp.R;
 import uk.me.sa.android.notify_smtp.data.Prefs_;
@@ -34,8 +32,6 @@ import android.provider.Settings;
 @EActivity
 @OptionsMenu(R.menu.main_activity_actions)
 public class MainActivity extends Activity {
-	private Logger log = LoggerFactory.getLogger(MainActivity.class);
-
 	@Pref
 	Prefs_ prefs;
 
