@@ -7,11 +7,13 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import android.annotation.SuppressLint;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class JoinThreadsAnswer implements Answer<Thread> {
 	private List<Thread> threads = new ArrayList<Thread>();
 
 	@SuppressLint("Assert")
+	@SuppressFBWarnings("DM_USELESS_THREAD")
 	@Override
 	public synchronized Thread answer(InvocationOnMock invocation) throws Throwable {
 		Object[] args = invocation.getArguments();

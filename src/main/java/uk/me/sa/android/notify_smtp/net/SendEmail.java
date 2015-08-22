@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import uk.me.sa.android.notify_smtp.data.Prefs_;
 import android.os.Build;
 import android.os.PowerManager;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class SendEmail implements Runnable {
 	private static final HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
@@ -74,7 +75,7 @@ public class SendEmail implements Runnable {
 	public SendEmail(PowerManager pm, Prefs_ prefs, String message, Date ts) {
 		this.pm = pm;
 		this.message = message;
-		this.ts = ts;
+		this.ts = (Date)ts.clone();
 
 		days = prefs.days().get();
 		startTime = prefs.startTime().get();
@@ -92,10 +93,10 @@ public class SendEmail implements Runnable {
 		c.setTime(ts);
 		if (days.contains(String.valueOf(c.get(Calendar.DAY_OF_WEEK)))) {
 			if (log.isDebugEnabled())
-				log.debug("days match: {} in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray(new String[0])));
+				log.debug("days match: {} in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray()));
 		} else {
 			if (log.isDebugEnabled())
-				log.debug("days mismatch: {} not in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray(new String[0])));
+				log.debug("days mismatch: {} not in {}", c.get(Calendar.DAY_OF_WEEK), Arrays.toString(days.toArray()));
 			return false;
 		}
 
@@ -184,6 +185,7 @@ public class SendEmail implements Runnable {
 
 	private static final int ATTEMPTS = 3;
 
+	@SuppressFBWarnings("SWL_SLEEP_WITH_LOCK_HELD")
 	public void run() {
 		PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getCanonicalName());
 		wl.acquire();
@@ -218,6 +220,7 @@ public class SendEmail implements Runnable {
 
 	private boolean send() throws NoSuchAlgorithmException, SocketException, IOException, InvalidKeyException, InvalidKeySpecException {
 		AuthenticatingSMTPClient client = new AuthenticatingSMTPClient() {
+			@SuppressFBWarnings("BC_UNCONFIRMED_CAST")
 			@Override
 			public boolean execTLS() throws IOException {
 				boolean ret = super.execTLS();

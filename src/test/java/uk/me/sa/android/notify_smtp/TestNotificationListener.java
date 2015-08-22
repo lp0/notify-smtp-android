@@ -50,6 +50,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.PowerManager;
 import android.service.notification.StatusBarNotification;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
@@ -61,6 +62,7 @@ public class TestNotificationListener {
 	ServiceController<NotificationListener_> controller;
 	NotificationListener_ service;
 
+	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	@Rule
 	public PowerMockRule rule = new PowerMockRule();
 
