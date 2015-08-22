@@ -42,6 +42,6 @@ public class MainActivity extends Activity {
 
 	@OptionsItem(R.id.menu_access)
 	void openNotificationAccess() {
-		startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
+		startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 	}
 }
