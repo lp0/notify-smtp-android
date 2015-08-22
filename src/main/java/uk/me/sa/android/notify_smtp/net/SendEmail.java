@@ -172,24 +172,24 @@ public class SendEmail implements Runnable {
 
 	@SuppressFBWarnings("SWL_SLEEP_WITH_LOCK_HELD")
 	public void run() {
-		synchronized (SendEmail.class) {
-			for (int i = 0; i < ATTEMPTS; i++) {
-				try {
-					log.info("Sending email at {} for: {}", ts, message);
-					if (send())
-						break;
-				} catch (Exception e) {
-					log.error("Unable to send email", e);
-				}
-
-				if (i + 1 < ATTEMPTS) {
+		try {
+			synchronized (SendEmail.class) {
+				for (int i = 0; i < ATTEMPTS; i++) {
 					try {
-						Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
-					} catch (InterruptedException e) {
-						log.warn("Interrupted while sleeping", e);
+						log.info("Sending email at {} for: {}", ts, message);
+
+						if (send())
+							break;
+					} catch (Exception e) {
+						log.error("Unable to send email", e);
 					}
+
+					if (i + 1 < ATTEMPTS)
+						Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
 				}
 			}
+		} catch (InterruptedException e) {
+			log.warn("Interrupted while sleeping", e);
 		}
 	}
 
