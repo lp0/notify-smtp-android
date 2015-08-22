@@ -38,11 +38,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.commons.net.smtp.AuthenticatingSMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
-import org.apache.http.conn.ssl.StrictHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,8 @@ import android.os.Build;
 import android.os.PowerManager;
 
 public class SendEmail implements Runnable {
+	private static final HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+
 	private Logger log = LoggerFactory.getLogger(SendEmail.class);
 
 	private PowerManager pm;
@@ -214,13 +218,12 @@ public class SendEmail implements Runnable {
 
 	private boolean send() throws NoSuchAlgorithmException, SocketException, IOException, InvalidKeyException, InvalidKeySpecException {
 		AuthenticatingSMTPClient client = new AuthenticatingSMTPClient() {
-			@SuppressWarnings("deprecation")
 			@Override
 			public boolean execTLS() throws IOException {
 				boolean ret = super.execTLS();
 				// Android does not support SSLParameters.setEndpointIdentificationAlgorithm("HTTPS") and the TrustManager is insecure by default
-				if (ret)
-					new StrictHostnameVerifier().verify(node, (SSLSocket)_socket_);
+				if (ret && !hostnameVerifier.verify(node, ((SSLSocket)_socket_).getSession()))
+					throw new SSLException("Hostname doesn't match certificate");
 				return ret;
 			}
 		};
