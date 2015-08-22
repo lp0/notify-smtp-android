@@ -98,8 +98,8 @@ public class NotificationListener extends NotificationListenerService {
 	}
 
 	private void sendEmail(String text, StatusBarNotification sbn) {
-		SendEmail se = new SendEmail(pm, prefs, text, new Date(sbn.getPostTime()));
+		SendEmail se = new SendEmail(prefs, text, new Date(sbn.getPostTime()));
 		if (se.isActive())
-			new Thread(se).start();
+			new Thread(new WakeLockRunnable(pm, se)).start();
 	}
 }

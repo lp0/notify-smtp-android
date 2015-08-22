@@ -48,7 +48,6 @@ import uk.me.sa.android.notify_smtp.net.SendEmail;
 import android.app.Notification;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.os.PowerManager;
 import android.service.notification.StatusBarNotification;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -209,10 +208,8 @@ public class TestNotificationListener {
 		service.onListenerConnected();
 
 		assertEquals(0, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"),
-				Mockito.isA(Date.class));
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Message received"),
-				Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
 		Mockito.verify(sendEmail, Mockito.times(2)).isActive();
 		Mockito.verifyNoMoreInteractions(sendEmail);
@@ -227,10 +224,8 @@ public class TestNotificationListener {
 		service.onListenerConnected();
 
 		assertEquals(2, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"),
-				Mockito.isA(Date.class));
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Message received"),
-				Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
 		Mockito.verify(sendEmail, Mockito.times(2)).isActive();
 		Mockito.verify(sendEmail, Mockito.times(2)).run();
@@ -305,8 +300,7 @@ public class TestNotificationListener {
 		service.onNotificationPosted(sbnMissedCallIcon);
 
 		assertEquals(0, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"),
-				Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
 		Mockito.verify(sendEmail).isActive();
 		Mockito.verifyNoMoreInteractions(sendEmail);
@@ -320,8 +314,7 @@ public class TestNotificationListener {
 		service.onNotificationPosted(sbnMissedCallIcon);
 
 		assertEquals(1, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"),
-				Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
 		Mockito.verify(sendEmail).isActive();
 		Mockito.verify(sendEmail).run();
@@ -336,8 +329,7 @@ public class TestNotificationListener {
 		service.onNotificationPosted(sbnTalkMessage);
 
 		assertEquals(0, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Message received"),
-				Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
 		Mockito.verify(sendEmail).isActive();
 		Mockito.verifyNoMoreInteractions(sendEmail);
@@ -351,8 +343,7 @@ public class TestNotificationListener {
 		service.onNotificationPosted(sbnTalkMessage);
 
 		assertEquals(1, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Message received"),
-				Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
 		Mockito.verify(sendEmail).isActive();
 		Mockito.verify(sendEmail).run();

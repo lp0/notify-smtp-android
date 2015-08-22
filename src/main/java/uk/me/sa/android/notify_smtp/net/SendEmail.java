@@ -49,7 +49,6 @@ import org.slf4j.LoggerFactory;
 
 import uk.me.sa.android.notify_smtp.data.Prefs_;
 import android.os.Build;
-import android.os.PowerManager;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class SendEmail implements Runnable {
@@ -59,7 +58,6 @@ public class SendEmail implements Runnable {
 
 	private Logger log = LoggerFactory.getLogger(SendEmail.class);
 
-	private PowerManager pm;
 	private String message;
 	private Date ts;
 
@@ -73,8 +71,7 @@ public class SendEmail implements Runnable {
 	private String sender;
 	private String[] recipients;
 
-	public SendEmail(PowerManager pm, Prefs_ prefs, String message, Date ts) {
-		this.pm = pm;
+	public SendEmail(Prefs_ prefs, String message, Date ts) {
 		this.message = message;
 		this.ts = (Date)ts.clone();
 
@@ -194,34 +191,28 @@ public class SendEmail implements Runnable {
 
 	@SuppressFBWarnings("SWL_SLEEP_WITH_LOCK_HELD")
 	public void run() {
-		PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getCanonicalName());
-		wl.acquire();
-		try {
-			synchronized (SendEmail.class) {
-				for (int i = 0; i < ATTEMPTS; i++) {
-					boolean ok = false;
+		synchronized (SendEmail.class) {
+			for (int i = 0; i < ATTEMPTS; i++) {
+				boolean ok = false;
 
+				try {
+					log.info("Sending email at {} for: {}", ts, message);
+					ok = send();
+				} catch (Exception e) {
+					log.error("Unable to send email", e);
+				}
+
+				if (ok)
+					break;
+
+				if (i + 1 < ATTEMPTS) {
 					try {
-						log.info("Sending email at {} for: {}", ts, message);
-						ok = send();
-					} catch (Exception e) {
-						log.error("Unable to send email", e);
-					}
-
-					if (ok)
-						break;
-
-					if (i + 1 < ATTEMPTS) {
-						try {
-							Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
-						} catch (InterruptedException e) {
-							log.warn("Interrupted while sleeping", e);
-						}
+						Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
+					} catch (InterruptedException e) {
+						log.warn("Interrupted while sleeping", e);
 					}
 				}
 			}
-		} finally {
-			wl.release();
 		}
 	}
 
