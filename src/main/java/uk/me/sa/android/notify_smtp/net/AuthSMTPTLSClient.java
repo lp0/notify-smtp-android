@@ -42,9 +42,9 @@ import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class AuthSMTPTLSClient extends AuthenticatingSMTPClient implements ProtocolCommandListener {
+	private static final Logger log = LoggerFactory.getLogger(AuthSMTPTLSClient.class);
 	private static final HostnameVerifier HOSTNAME_VERIFIER = HttpsURLConnection.getDefaultHostnameVerifier();
 
-	private Logger log = LoggerFactory.getLogger(AuthSMTPTLSClient.class);
 	private String hostname;
 	private String command;
 

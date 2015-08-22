@@ -43,7 +43,7 @@ import org.robolectric.shadows.ShadowPreferenceManager;
 import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ServiceController;
 
-import uk.me.sa.android.notify_smtp.data.Prefs_;
+import uk.me.sa.android.notify_smtp.data.ValidatedPrefs;
 import uk.me.sa.android.notify_smtp.net.SendEmail;
 import android.app.Notification;
 import android.content.SharedPreferences;
@@ -89,6 +89,9 @@ public class TestNotificationListener {
 	Notification nTalkMessage;
 
 	@Mock
+	ValidatedPrefs validatedPrefs;
+
+	@Mock
 	SendEmail sendEmail;
 
 	StatusBarNotification[] allMessages;
@@ -128,6 +131,7 @@ public class TestNotificationListener {
 
 		threads = new JoinThreadsAnswer();
 
+		PowerMockito.whenNew(ValidatedPrefs.class).withAnyArguments().thenReturn(validatedPrefs);
 		PowerMockito.whenNew(SendEmail.class).withAnyArguments().thenReturn(sendEmail);
 		PowerMockito.whenNew(Thread.class).withAnyArguments().thenAnswer(threads);
 
@@ -203,31 +207,26 @@ public class TestNotificationListener {
 	public void existing_enabledAllMessages_Inactive() throws Exception {
 		sharedPreferences.edit().putBoolean("enabled", true).commit();
 		PowerMockito.doReturn(allMessages).when(service).getActiveNotifications();
-		Mockito.doReturn(false).when(sendEmail).isActive();
+		Mockito.doReturn(false).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
 
 		service.onListenerConnected();
 
 		assertEquals(0, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
-		Mockito.verify(sendEmail, Mockito.times(2)).isActive();
-		Mockito.verifyNoMoreInteractions(sendEmail);
 	}
 
 	@Test
 	public void existing_enabledAllMessages_Active() throws Exception {
 		sharedPreferences.edit().putBoolean("enabled", true).commit();
 		PowerMockito.doReturn(allMessages).when(service).getActiveNotifications();
-		Mockito.doReturn(true).when(sendEmail).isActive();
+		Mockito.doReturn(true).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
 
 		service.onListenerConnected();
 
 		assertEquals(2, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(ValidatedPrefs.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(ValidatedPrefs.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
-		Mockito.verify(sendEmail, Mockito.times(2)).isActive();
 		Mockito.verify(sendEmail, Mockito.times(2)).run();
 		Mockito.verifyNoMoreInteractions(sendEmail);
 	}
@@ -295,28 +294,24 @@ public class TestNotificationListener {
 	@Test
 	public void posted_enabledMissedCallIcon_Inactive() throws Exception {
 		sharedPreferences.edit().putBoolean("enabled", true).commit();
-		Mockito.doReturn(false).when(sendEmail).isActive();
+		Mockito.doReturn(false).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
 
 		service.onNotificationPosted(sbnMissedCallIcon);
 
 		assertEquals(0, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
-		Mockito.verify(sendEmail).isActive();
-		Mockito.verifyNoMoreInteractions(sendEmail);
 	}
 
 	@Test
 	public void posted_enabledMissedCallIcon_Active() throws Exception {
 		sharedPreferences.edit().putBoolean("enabled", true).commit();
-		Mockito.doReturn(true).when(sendEmail).isActive();
+		Mockito.doReturn(true).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
 
 		service.onNotificationPosted(sbnMissedCallIcon);
 
 		assertEquals(1, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(ValidatedPrefs.class), Mockito.eq("Missed phone call"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
-		Mockito.verify(sendEmail).isActive();
 		Mockito.verify(sendEmail).run();
 		Mockito.verifyNoMoreInteractions(sendEmail);
 	}
@@ -324,28 +319,24 @@ public class TestNotificationListener {
 	@Test
 	public void posted_enabledTalkMessage_Inactive() throws Exception {
 		sharedPreferences.edit().putBoolean("enabled", true).commit();
-		Mockito.doReturn(false).when(sendEmail).isActive();
+		Mockito.doReturn(false).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
 
 		service.onNotificationPosted(sbnTalkMessage);
 
 		assertEquals(0, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
-		Mockito.verify(sendEmail).isActive();
-		Mockito.verifyNoMoreInteractions(sendEmail);
 	}
 
 	@Test
 	public void posted_enabledTalkMessage_Active() throws Exception {
 		sharedPreferences.edit().putBoolean("enabled", true).commit();
-		Mockito.doReturn(true).when(sendEmail).isActive();
+		Mockito.doReturn(true).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
 
 		service.onNotificationPosted(sbnTalkMessage);
 
 		assertEquals(1, threads.join());
-		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(Prefs_.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(ValidatedPrefs.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
 		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
-		Mockito.verify(sendEmail).isActive();
 		Mockito.verify(sendEmail).run();
 		Mockito.verifyNoMoreInteractions(sendEmail);
 	}

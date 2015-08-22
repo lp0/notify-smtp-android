@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.me.sa.android.notify_smtp.data.Prefs_;
+import uk.me.sa.android.notify_smtp.data.ValidatedPrefs;
 import uk.me.sa.android.notify_smtp.net.SendEmail;
 import android.app.Notification;
 import android.content.Context;
@@ -36,7 +37,8 @@ import android.service.notification.StatusBarNotification;
 
 @EService
 public class NotificationListener extends NotificationListenerService {
-	private Logger log = LoggerFactory.getLogger(NotificationListener.class);
+	private static final Logger log = LoggerFactory.getLogger(NotificationListener.class);
+
 	private PowerManager pm;
 
 	@Pref
@@ -98,8 +100,9 @@ public class NotificationListener extends NotificationListenerService {
 	}
 
 	private void sendEmail(String text, StatusBarNotification sbn) {
-		SendEmail se = new SendEmail(prefs, text, new Date(sbn.getPostTime()));
-		if (se.isActive())
-			new Thread(new WakeLockRunnable(pm, se)).start();
+		Date ts = new Date(sbn.getPostTime());
+		ValidatedPrefs vp = new ValidatedPrefs(prefs);
+		if (vp.isActiveAt(ts))
+			new Thread(new WakeLockRunnable(pm, new SendEmail(vp, text, ts))).start();
 	}
 }
