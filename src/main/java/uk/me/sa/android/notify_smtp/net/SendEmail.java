@@ -134,57 +134,38 @@ public class SendEmail implements Runnable {
 		if (!hasAllPrefs())
 			return false;
 
-		Calendar cEvent = Calendar.getInstance(Locale.ENGLISH);
-		cEvent.setTime(ts);
-		final int dowEvent = cEvent.get(Calendar.DAY_OF_WEEK);
-		final int hEvent = cEvent.get(Calendar.HOUR_OF_DAY);
-		final int mEvent = cEvent.get(Calendar.MINUTE);
-		if (days.contains(String.valueOf(dowEvent))) {
-			if (log.isDebugEnabled())
-				log.debug("days match: {} in {}", dowEvent, days.toArray());
-		} else {
-			if (log.isDebugEnabled())
-				log.debug("days mismatch: {} not in {}", dowEvent, days.toArray());
-			return false;
-		}
+		Calendar c = Calendar.getInstance(Locale.ENGLISH);
+		c.setTime(ts);
+		final int dowEvent = c.get(Calendar.DAY_OF_WEEK);
+		final int hEvent = c.get(Calendar.HOUR_OF_DAY);
+		final int mEvent = c.get(Calendar.MINUTE);
 
-		Calendar cStart = Calendar.getInstance(Locale.ENGLISH);
+		if (!days.contains(String.valueOf(dowEvent)))
+			return false;
+
 		try {
-			cStart.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(startTime));
+			c.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(startTime));
 		} catch (ParseException e) {
 			log.warn("startTime invalid: {}", startTime);
 			return false;
 		}
-		final int hStart = cStart.get(Calendar.HOUR_OF_DAY);
-		final int mStart = cStart.get(Calendar.MINUTE);
+		final int hStart = c.get(Calendar.HOUR_OF_DAY);
+		final int mStart = c.get(Calendar.MINUTE);
 
-		if ((hEvent == hStart && mEvent >= mStart) || hEvent > hStart) {
-			if (log.isDebugEnabled())
-				log.debug("startTime match: {} {} >= {} {}", hEvent, mEvent, hStart, mStart);
-		} else {
-			if (log.isDebugEnabled())
-				log.debug("startTime mismatch: {} {} < {} {}", hEvent, mEvent, hStart, mStart);
+		if (!((hEvent == hStart && mEvent >= mStart) || hEvent > hStart))
 			return false;
-		}
 
-		Calendar cStop = Calendar.getInstance(Locale.ENGLISH);
 		try {
-			cStop.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(stopTime));
+			c.setTime(new SimpleDateFormat("HH:mm", Locale.ENGLISH).parse(stopTime));
 		} catch (ParseException e) {
 			log.warn("stopTime invalid: {}", startTime);
 			return false;
 		}
-		final int hStop = cStop.get(Calendar.HOUR_OF_DAY);
-		final int mStop = cStop.get(Calendar.MINUTE);
+		final int hStop = c.get(Calendar.HOUR_OF_DAY);
+		final int mStop = c.get(Calendar.MINUTE);
 
-		if ((hEvent == hStop && mEvent <= mStop) || hEvent < hStop) {
-			if (log.isDebugEnabled())
-				log.debug("stopTime match: {} {} <= {} {}", hEvent, mEvent, hStop, mStop);
-		} else {
-			if (log.isDebugEnabled())
-				log.debug("stopTime mismatch: {} {} > {} {}", hEvent, mEvent, hStop, mStop);
+		if (!((hEvent == hStop && mEvent <= mStop) || hEvent < hStop))
 			return false;
-		}
 
 		return true;
 	}
