@@ -54,8 +54,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
-@PrepareForTest(fullyQualifiedNames = { "uk.me.sa.android.notify_smtp.TestNotificationListener", "uk.me.sa.android.notify_smtp.NotificationListener",
-		"uk.me.sa.android.notify_smtp.NotificationListener_", "uk.me.sa.android.notify_smtp.NotificationListener.SendEmail" })
+@PrepareForTest(fullyQualifiedNames = { "uk.me.sa.android.notify_smtp.NotificationListener", "uk.me.sa.android.notify_smtp.NotificationListener_" })
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
 public class TestNotificationListener {
 	SharedPreferences sharedPreferences;
@@ -192,7 +191,7 @@ public class TestNotificationListener {
 		PowerMockito.doReturn(allMessages).when(service).getActiveNotifications();
 		Mockito.doReturn(false).when(sendEmail).isActive();
 		service.onListenerConnected();
-		assertEquals(2, threads.join());
+		assertEquals(0, threads.join());
 		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Missed phone call"),
 				Mockito.isA(Date.class));
 		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(PowerManager.class), Mockito.isA(Prefs_.class), Mockito.eq("Message received"),
