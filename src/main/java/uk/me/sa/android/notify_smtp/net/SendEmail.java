@@ -19,8 +19,6 @@
 package uk.me.sa.android.notify_smtp.net;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -34,7 +32,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
@@ -47,8 +44,8 @@ import org.apache.commons.net.smtp.SMTPReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.me.sa.android.notify_smtp.data.Message;
 import uk.me.sa.android.notify_smtp.data.Prefs_;
-import android.os.Build;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class SendEmail implements Runnable {
@@ -269,37 +266,7 @@ public class SendEmail implements Runnable {
 					}
 				}
 
-				Writer w = client.sendMessageData();
-				if (w != null) {
-					log.info("DATA: {}", client.getReplyString());
-
-					PrintWriter pw = new PrintWriter(w);
-					pw.println("Message-Id: <" + UUID.randomUUID() + "@android.invalid>");
-					pw.println("Date: " + new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(ts));
-					pw.println("Subject: " + message);
-					pw.println("From: " + Build.MANUFACTURER + " " + Build.MODEL + " <" + sender + ">");
-					pw.print("To: ");
-					boolean first = true;
-					for (String recipient : recipients) {
-						if (!first)
-							pw.print(", ");
-						pw.print("<" + recipient + ">");
-						first = false;
-					}
-					pw.println();
-					pw.println("Content-Type: text/plain; charset=UTF-8");
-					pw.println("Content-Transfer-Encoding: 8bit");
-					pw.println("X-Auto-Response-Suppress: OOF");
-					pw.println("");
-					pw.println();
-					pw.close();
-				} else {
-					log.error("DATA: {}", client.getReplyString());
-					return false;
-				}
-
-				client.completePendingCommand();
-				if (SMTPReply.isPositiveCompletion(client.getReplyCode())) {
+				if (client.sendShortMessageData(new Message(message, ts, sender, recipients).toString())) {
 					log.info("DATA: {}", client.getReplyString());
 				} else {
 					log.error("DATA: {}", client.getReplyString());
