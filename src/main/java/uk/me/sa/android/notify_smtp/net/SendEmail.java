@@ -174,17 +174,13 @@ public class SendEmail implements Runnable {
 	public void run() {
 		synchronized (SendEmail.class) {
 			for (int i = 0; i < ATTEMPTS; i++) {
-				boolean ok = false;
-
 				try {
 					log.info("Sending email at {} for: {}", ts, message);
-					ok = send();
+					if (send())
+						break;
 				} catch (Exception e) {
 					log.error("Unable to send email", e);
 				}
-
-				if (ok)
-					break;
 
 				if (i + 1 < ATTEMPTS) {
 					try {
