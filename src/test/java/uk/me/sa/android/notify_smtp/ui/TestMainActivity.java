@@ -45,7 +45,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @Config(emulateSdk = 18)
 @PrepareForTest(fullyQualifiedNames = { "uk.me.sa.android.notify_smtp.ui.MainActivity" })
 @PowerMockIgnore({ "org.mockito.*", "org.robolectric.*", "android.*" })
-@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
+@SuppressFBWarnings({ "URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD", "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR" })
 public class TestMainActivity {
 	ActivityController<MainActivity_> controller;
 	MainActivity_ activity;
@@ -63,7 +63,8 @@ public class TestMainActivity {
 
 	@After
 	public void destroy() {
-		controller.pause().stop().destroy();
+		if (controller != null)
+			controller.pause().stop().destroy();
 	}
 
 	@Test

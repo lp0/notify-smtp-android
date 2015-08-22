@@ -147,6 +147,8 @@
 						</includes>
 						<parallel>classes</parallel>
 						<reuseForks>false</reuseForks>
+						<!-- Cobertura 2.5.2 instrumentation fails Java 1.7 bytecode verification -->
+						<argLine>-noverify</argLine>
 					</configuration>
 				</plugin>
 			</plugins>
