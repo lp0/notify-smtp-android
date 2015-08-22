@@ -28,6 +28,9 @@ public class Message {
 	private String content;
 
 	public Message(String subject, Date date, String sender, String[] recipients) {
+		if (recipients.length == 0)
+			throw new IllegalArgumentException("No recipients");
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("Message-Id: <").append(UUID.randomUUID()).append("@android.invalid>\r\n");
 		sb.append("Date: ").append(new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(date)).append("\r\n");
