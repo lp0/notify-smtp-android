@@ -22,15 +22,11 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSocket;
 
 import org.apache.commons.net.ProtocolCommandEvent;
 import org.apache.commons.net.ProtocolCommandListener;
@@ -43,57 +39,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public class AuthSMTPTLSClient extends AuthenticatingSMTPClient implements ProtocolCommandListener {
 	private static final Logger log = LoggerFactory.getLogger(AuthSMTPTLSClient.class);
-	private static final HostnameVerifier HOSTNAME_VERIFIER = HttpsURLConnection.getDefaultHostnameVerifier();
 
-	private String hostname;
 	private String command;
 
 	public AuthSMTPTLSClient() throws NoSuchAlgorithmException {
 		super("TLS", "UTF-8");
+		setHostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier());
 		addProtocolCommandListener(this);
-	}
-
-	@Override
-	public void connect(InetAddress host, int port) throws SocketException, IOException {
-		this.hostname = null;
-		command = "CONN";
-		super.connect(host, port);
-		this.hostname = host.getHostAddress();
-	}
-
-	@Override
-	public void connect(String hostname, int port) throws SocketException, IOException {
-		this.hostname = null;
-		super.connect(hostname, port);
-		this.hostname = hostname;
-	}
-
-	@Override
-	public void connect(InetAddress host, int port, InetAddress localAddr, int localPort) throws SocketException, IOException {
-		this.hostname = null;
-		super.connect(host, port, localAddr, localPort);
-		this.hostname = host.getHostAddress();
-	}
-
-	@Override
-	public void connect(String hostname, int port, InetAddress localAddr, int localPort) throws SocketException, IOException {
-		this.hostname = null;
-		super.connect(hostname, port, localAddr, localPort);
-		this.hostname = hostname;
-	}
-
-	@Override
-	public void connect(InetAddress host) throws SocketException, IOException {
-		this.hostname = null;
-		super.connect(host);
-		this.hostname = host.getHostAddress();
-	}
-
-	@Override
-	public void connect(String hostname) throws SocketException, IOException {
-		this.hostname = null;
-		super.connect(hostname);
-		this.hostname = hostname;
 	}
 
 	@Override
@@ -122,16 +74,6 @@ public class AuthSMTPTLSClient extends AuthenticatingSMTPClient implements Proto
 		} else {
 			return elogin("android.invalid");
 		}
-	}
-
-	@SuppressFBWarnings("BC_UNCONFIRMED_CAST")
-	@Override
-	public boolean execTLS() throws IOException {
-		boolean ret = super.execTLS();
-		// Android does not support SSLParameters.setEndpointIdentificationAlgorithm("HTTPS") and the TrustManager is insecure by default
-		if (ret && !HOSTNAME_VERIFIER.verify(hostname, ((SSLSocket)_socket_).getSession()))
-			throw new SSLException("Hostname doesn't match certificate");
-		return ret;
 	}
 
 	@Override
