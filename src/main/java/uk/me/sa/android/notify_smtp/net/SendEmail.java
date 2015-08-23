@@ -40,17 +40,17 @@ public class SendEmail implements Callable<Boolean> {
 	private static final int TIMEOUT_MS = (int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
 	private ValidatedPrefs prefs;
-	private String message;
+	private String subject;
 	private Date ts;
 
-	public SendEmail(ValidatedPrefs prefs, String message, Date ts) {
+	public SendEmail(ValidatedPrefs prefs, String subject, Date ts) {
 		this.prefs = prefs;
-		this.message = message;
+		this.subject = subject;
 		this.ts = (Date)ts.clone();
 	}
 
 	public Boolean call() throws NoSuchAlgorithmException, SocketException, IOException, InvalidKeyException, InvalidKeySpecException {
-		log.info("Sending email: {} ({})", message, ts);
+		log.info("Sending email: {} ({})", subject, ts);
 		AuthSMTPTLSClient client = new AuthSMTPTLSClient();
 		client.setDefaultTimeout(TIMEOUT_MS);
 		client.connect(prefs.node, prefs.port);
@@ -72,7 +72,7 @@ public class SendEmail implements Callable<Boolean> {
 				if (!client.addRecipient(recipient))
 					return false;
 
-			if (!client.sendShortMessageData(new Message(message, ts, prefs.sender, prefs.recipients).toString()))
+			if (!client.sendShortMessageData(new Message(subject, ts, prefs.sender, prefs.recipients).toString()))
 				return false;
 
 			return client.logout();

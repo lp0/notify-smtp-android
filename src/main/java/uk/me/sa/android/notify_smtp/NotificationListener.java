@@ -87,17 +87,17 @@ public class NotificationListener extends NotificationListenerService {
 
 		Notification n = sbn.getNotification();
 		if (n.icon == android.R.drawable.stat_notify_missed_call) {
-			sendEmail(getString(R.string.email_missed_call_notification), sbn);
+			sendEmail(R.string.email_missed_call_notification, sbn);
 		} else if (((Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) || Notification.CATEGORY_MESSAGE.equals(n.category))
 				&& sbn.getPackageName().equals("com.google.android.talk")) {
-			sendEmail(getString(R.string.email_message_notification), sbn);
+			sendEmail(R.string.email_message_notification, sbn);
 		}
 	}
 
-	private void sendEmail(String text, StatusBarNotification sbn) {
+	private void sendEmail(int text, StatusBarNotification sbn) {
 		Date ts = new Date(sbn.getPostTime());
 		ValidatedPrefs vp = new ValidatedPrefs(prefs);
 		if (vp.isActiveAt(ts))
-			new Thread(new WakeLockRunnable(pm, new SequentialRetryRunnable(new SendEmail(vp, text, ts)))).start();
+			new Thread(new WakeLockRunnable(pm, new SequentialRetryRunnable(new SendEmail(vp, getString(text), ts)))).start();
 	}
 }
