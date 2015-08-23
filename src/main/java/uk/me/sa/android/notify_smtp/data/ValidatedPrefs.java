@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -41,7 +41,7 @@ public class ValidatedPrefs {
 	public final String username;
 	public final String password;
 	public final String sender;
-	public final Set<String> recipients = new HashSet<String>();
+	public final Set<String> recipients = new LinkedHashSet<String>();
 
 	public ValidatedPrefs(Prefs_ prefs) {
 		days = prefs.days().get();
