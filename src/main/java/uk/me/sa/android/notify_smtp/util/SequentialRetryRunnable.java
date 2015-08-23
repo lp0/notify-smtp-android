@@ -40,7 +40,7 @@ public class SequentialRetryRunnable implements Runnable {
 	public void run() {
 		try {
 			synchronized (callable.getClass()) {
-				for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
+				for (int attempt = 1; attempt <= ATTEMPTS; attempt++) {
 					try {
 						log.info("Attempt {} of {}: {}", attempt, ATTEMPTS, callable);
 
@@ -50,7 +50,7 @@ public class SequentialRetryRunnable implements Runnable {
 						log.error("Attempt {} failed", attempt, e);
 					}
 
-					if (attempt + 1 < ATTEMPTS)
+					if (attempt < ATTEMPTS)
 						Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
 				}
 			}
