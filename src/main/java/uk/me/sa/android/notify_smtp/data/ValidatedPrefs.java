@@ -122,7 +122,7 @@ public class ValidatedPrefs {
 		final int hStart = c.get(Calendar.HOUR_OF_DAY);
 		final int mStart = c.get(Calendar.MINUTE);
 
-		if (!((hEvent == hStart && mEvent >= mStart) || hEvent > hStart))
+		if (hEvent < hStart || (hEvent == hStart && mEvent < mStart))
 			return false;
 
 		try {
@@ -134,7 +134,7 @@ public class ValidatedPrefs {
 		final int hStop = c.get(Calendar.HOUR_OF_DAY);
 		final int mStop = c.get(Calendar.MINUTE);
 
-		if (!((hEvent == hStop && mEvent <= mStop) || hEvent < hStop))
+		if (hEvent > hStop || (hEvent == hStop && mEvent > mStop))
 			return false;
 
 		return true;
