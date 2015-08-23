@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
-import java.util.TimeZone;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -193,7 +192,7 @@ public class TestValidatedPrefs {
 	}
 
 	private void testDay(int dayOfWeek) {
-		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.ENGLISH);
+		Calendar c = Calendar.getInstance(Locale.ENGLISH);
 		c.set(Calendar.DAY_OF_WEEK, dayOfWeek);
 		Date ts = c.getTime();
 		Assert.assertTrue(new ValidatedPrefs(prefs).isActiveAt(ts));
