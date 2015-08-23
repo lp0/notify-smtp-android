@@ -24,6 +24,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.net.smtp.AuthenticatingSMTPClient.AUTH_METHOD;
@@ -33,11 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import uk.me.sa.android.notify_smtp.data.Message;
 import uk.me.sa.android.notify_smtp.data.ValidatedPrefs;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-public class SendEmail implements Runnable {
+public class SendEmail implements Callable<Boolean> {
 	private static final Logger log = LoggerFactory.getLogger(SendEmail.class);
-	private static final int ATTEMPTS = 3;
 	private static final int TIMEOUT_MS = (int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
 	private ValidatedPrefs prefs;
@@ -50,30 +49,8 @@ public class SendEmail implements Runnable {
 		this.ts = (Date)ts.clone();
 	}
 
-	@SuppressFBWarnings("SWL_SLEEP_WITH_LOCK_HELD")
-	public void run() {
-		try {
-			synchronized (SendEmail.class) {
-				for (int i = 0; i < ATTEMPTS; i++) {
-					try {
-						log.info("Sending email at {} for: {}", ts, message);
-
-						if (send())
-							break;
-					} catch (Exception e) {
-						log.error("Unable to send email", e);
-					}
-
-					if (i + 1 < ATTEMPTS)
-						Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
-				}
-			}
-		} catch (InterruptedException e) {
-			log.warn("Interrupted while sleeping", e);
-		}
-	}
-
-	private boolean send() throws NoSuchAlgorithmException, SocketException, IOException, InvalidKeyException, InvalidKeySpecException {
+	public Boolean call() throws NoSuchAlgorithmException, SocketException, IOException, InvalidKeyException, InvalidKeySpecException {
+		log.info("Sending email: {} ({})", message, ts);
 		AuthSMTPTLSClient client = new AuthSMTPTLSClient();
 		client.setDefaultTimeout(TIMEOUT_MS);
 		client.connect(prefs.node, prefs.port);
@@ -103,7 +80,6 @@ public class SendEmail implements Runnable {
 			try {
 				client.disconnect();
 			} catch (IOException e) {
-				log.error("Error disconnecting", e);
 			}
 		}
 	}

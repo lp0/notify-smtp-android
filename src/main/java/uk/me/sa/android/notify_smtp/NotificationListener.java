@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import uk.me.sa.android.notify_smtp.data.Prefs_;
 import uk.me.sa.android.notify_smtp.data.ValidatedPrefs;
 import uk.me.sa.android.notify_smtp.net.SendEmail;
+import uk.me.sa.android.notify_smtp.util.SequentialRetryRunnable;
 import android.app.Notification;
 import android.content.Context;
 import android.os.Build;
@@ -103,6 +104,6 @@ public class NotificationListener extends NotificationListenerService {
 		Date ts = new Date(sbn.getPostTime());
 		ValidatedPrefs vp = new ValidatedPrefs(prefs);
 		if (vp.isActiveAt(ts))
-			new Thread(new WakeLockRunnable(pm, new SendEmail(vp, text, ts))).start();
+			new Thread(new WakeLockRunnable(pm, new SequentialRetryRunnable(new SendEmail(vp, text, ts)))).start();
 	}
 }
