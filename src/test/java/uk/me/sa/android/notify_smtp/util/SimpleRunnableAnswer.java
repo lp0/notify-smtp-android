@@ -23,6 +23,9 @@ import java.util.concurrent.Callable;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public class SimpleRunnableAnswer implements Answer<Runnable> {
 	@SuppressWarnings("unchecked")
 	@Override

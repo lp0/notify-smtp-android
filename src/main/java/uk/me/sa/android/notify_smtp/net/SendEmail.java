@@ -77,10 +77,7 @@ public class SendEmail implements Callable<Boolean> {
 
 			return client.logout();
 		} finally {
-			try {
-				client.disconnect();
-			} catch (IOException e) {
-			}
+			client.disconnect();
 		}
 	}
 }

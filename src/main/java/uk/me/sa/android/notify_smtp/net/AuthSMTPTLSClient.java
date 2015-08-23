@@ -102,6 +102,16 @@ public class AuthSMTPTLSClient extends AuthenticatingSMTPClient implements Proto
 		super._connectAction_();
 	}
 
+	@SuppressFBWarnings("DE_MIGHT_IGNORE")
+	@Override
+	public void disconnect() {
+		try {
+			// This doesn't throw IOException
+			super.disconnect();
+		} catch (IOException e) {
+		}
+	}
+
 	@Override
 	public boolean elogin() throws IOException {
 		InetAddress addr = getLocalAddress();

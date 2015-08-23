@@ -38,9 +38,11 @@ import android.content.Context;
 import android.os.Build;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
+@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public class TestWakeLockRunnable {
 	PowerManager pm;
 
