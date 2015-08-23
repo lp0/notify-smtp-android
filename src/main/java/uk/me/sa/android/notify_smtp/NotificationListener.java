@@ -92,11 +92,9 @@ public class NotificationListener extends NotificationListenerService {
 
 		Notification n = sbn.getNotification();
 		if (n.icon == android.R.drawable.stat_notify_missed_call) {
-			log.debug("  Missed call notification");
 			sendEmail(getString(R.string.email_missed_call_notification), sbn);
 		} else if (((Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) || Notification.CATEGORY_MESSAGE.equals(n.category))
 				&& sbn.getPackageName().equals("com.google.android.talk")) {
-			log.debug("  Message notification");
 			sendEmail(getString(R.string.email_message_notification), sbn);
 		}
 	}
