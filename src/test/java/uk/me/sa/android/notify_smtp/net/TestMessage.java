@@ -20,6 +20,8 @@ package uk.me.sa.android.notify_smtp.net;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 
 import org.junit.Test;
@@ -38,7 +40,7 @@ import com.btmatthews.hamcrest.regex.PatternMatcher;
 public class TestMessage {
 	@Test(expected = IllegalArgumentException.class)
 	public void noRecipients() throws Exception {
-		new Message("subject", new Date(), "sender", new String[0]);
+		new Message("subject", new Date(), "sender", Collections.<String>emptySet());
 	}
 
 	@Test
@@ -46,7 +48,7 @@ public class TestMessage {
 		ReflectionHelpers.setStaticFieldReflectively(Build.class, "MANUFACTURER", "Android");
 		ReflectionHelpers.setStaticFieldReflectively(Build.class, "MODEL", "Device");
 
-		assertThat(new Message("subject", new Date(), "sender", new String[] { "recipient1" }).toString(),
+		assertThat(new Message("subject", new Date(), "sender", Arrays.asList("recipient1")).toString(),
 				PatternMatcher.matches("Message-Id: <[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}@android.invalid>\r\n"
 						+ "Date: [A-Z][a-z][a-z], [0-9]{2} [A-Z][a-z][a-z] [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4}\r\n" + "Subject: subject\r\n"
 						+ "From: Android Device <sender>\r\n" + "To: <recipient1>\r\n" + "Content-Type: text/plain; charset=UTF-8\r\n"
@@ -58,7 +60,7 @@ public class TestMessage {
 		ReflectionHelpers.setStaticFieldReflectively(Build.class, "MANUFACTURER", "Android");
 		ReflectionHelpers.setStaticFieldReflectively(Build.class, "MODEL", "Device");
 
-		assertThat(new Message("subject", new Date(), "sender", new String[] { "recipient1", "recipient2" }).toString(),
+		assertThat(new Message("subject", new Date(), "sender", Arrays.asList("recipient1", "recipient2")).toString(),
 				PatternMatcher.matches("Message-Id: <[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}@android.invalid>\r\n"
 						+ "Date: [A-Z][a-z][a-z], [0-9]{2} [A-Z][a-z][a-z] [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4}\r\n" + "Subject: subject\r\n"
 						+ "From: Android Device <sender>\r\n" + "To: <recipient1>, <recipient2>\r\n" + "Content-Type: text/plain; charset=UTF-8\r\n"
@@ -70,7 +72,7 @@ public class TestMessage {
 		ReflectionHelpers.setStaticFieldReflectively(Build.class, "MANUFACTURER", "Android");
 		ReflectionHelpers.setStaticFieldReflectively(Build.class, "MODEL", "Device");
 
-		assertThat(new Message("subject", new Date(), "sender", new String[] { "recipient1", "recipient2", "recipient3" }).toString(),
+		assertThat(new Message("subject", new Date(), "sender", Arrays.asList("recipient1", "recipient2", "recipient3")).toString(),
 				PatternMatcher.matches("Message-Id: <[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}@android.invalid>\r\n"
 						+ "Date: [A-Z][a-z][a-z], [0-9]{2} [A-Z][a-z][a-z] [0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4}\r\n" + "Subject: subject\r\n"
 						+ "From: Android Device <sender>\r\n" + "To: <recipient1>, <recipient2>, <recipient3>\r\n"

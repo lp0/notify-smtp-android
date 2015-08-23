@@ -20,8 +20,10 @@ package uk.me.sa.android.notify_smtp.data;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -39,7 +41,7 @@ public class ValidatedPrefs {
 	public final String username;
 	public final String password;
 	public final String sender;
-	public final String[] recipients;
+	public final Set<String> recipients = new HashSet<String>();
 
 	public ValidatedPrefs(Prefs_ prefs) {
 		days = prefs.days().get();
@@ -50,7 +52,8 @@ public class ValidatedPrefs {
 		username = prefs.username().get();
 		password = prefs.password().get();
 		sender = prefs.sender().get();
-		recipients = prefs.recipients().get().split(" ");
+		recipients.addAll(Arrays.asList(prefs.recipients().get().split(" ")));
+		recipients.remove("");
 	}
 
 	public boolean hasAllPrefs() {
@@ -89,7 +92,7 @@ public class ValidatedPrefs {
 			return false;
 		}
 
-		if (recipients.length == 0) {
+		if (recipients.isEmpty()) {
 			log.warn("recipients missing");
 			return false;
 		}

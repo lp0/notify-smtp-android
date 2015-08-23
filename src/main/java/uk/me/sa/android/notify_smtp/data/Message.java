@@ -19,6 +19,7 @@
 package uk.me.sa.android.notify_smtp.data;
 
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 
@@ -27,8 +28,8 @@ import android.os.Build;
 public class Message {
 	private String content;
 
-	public Message(String subject, Date date, String sender, String[] recipients) {
-		if (recipients.length == 0)
+	public Message(String subject, Date date, String sender, Collection<String> recipients) {
+		if (recipients.isEmpty())
 			throw new IllegalArgumentException("No recipients");
 
 		StringBuilder sb = new StringBuilder();
