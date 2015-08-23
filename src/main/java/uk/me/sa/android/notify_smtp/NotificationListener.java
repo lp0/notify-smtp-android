@@ -56,33 +56,29 @@ public class NotificationListener extends NotificationListenerService {
 	@Override
 	public void onListenerConnected() {
 		for (StatusBarNotification sbn : getActiveNotifications()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Active notification:");
-				logNotification(sbn);
-			}
+			if (log.isDebugEnabled())
+				logNotification("Active", sbn);
+
 			processNotification(sbn);
 		}
 	}
 
 	@Override
 	public void onNotificationPosted(StatusBarNotification sbn) {
-		if (log.isDebugEnabled()) {
-			log.debug("Notification posted:");
-			logNotification(sbn);
-		}
+		if (log.isDebugEnabled())
+			logNotification("Posted", sbn);
+
 		processNotification(sbn);
 	}
 
 	@Override
 	public void onNotificationRemoved(StatusBarNotification sbn) {
-		if (log.isDebugEnabled()) {
-			log.debug("Notification removed:");
-			logNotification(sbn);
-		}
+		if (log.isDebugEnabled())
+			logNotification("Removed", sbn);
 	}
 
-	private void logNotification(StatusBarNotification sbn) {
-		log.debug(" {} icon={}", sbn, sbn.getNotification().icon);
+	private void logNotification(String prefix, StatusBarNotification sbn) {
+		log.debug("{}: {} icon={}", prefix, sbn, sbn.getNotification().icon);
 	}
 
 	private void processNotification(StatusBarNotification sbn) {
