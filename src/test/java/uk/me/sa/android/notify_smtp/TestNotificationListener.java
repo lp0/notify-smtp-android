@@ -21,7 +21,6 @@ package uk.me.sa.android.notify_smtp;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,8 +46,6 @@ import org.robolectric.util.ServiceController;
 import uk.me.sa.android.notify_smtp.data.ValidatedPrefs;
 import uk.me.sa.android.notify_smtp.net.SendEmail;
 import uk.me.sa.android.notify_smtp.util.JoinThreadsAnswer;
-import uk.me.sa.android.notify_smtp.util.SequentialRetryRunnable;
-import uk.me.sa.android.notify_smtp.util.SimpleRunnableAnswer;
 import android.app.Notification;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -136,8 +133,8 @@ public class TestNotificationListener {
 		threads = new JoinThreadsAnswer();
 
 		PowerMockito.whenNew(ValidatedPrefs.class).withAnyArguments().thenReturn(validatedPrefs);
-		PowerMockito.whenNew(SequentialRetryRunnable.class).withArguments(Mockito.isA(Callable.class)).thenAnswer(new SimpleRunnableAnswer());
 		PowerMockito.whenNew(SendEmail.class).withAnyArguments().thenReturn(sendEmail);
+		Mockito.doReturn(true).when(sendEmail).call();
 		PowerMockito.whenNew(Thread.class).withAnyArguments().thenAnswer(threads);
 
 		ShadowToast.reset();
@@ -149,8 +146,8 @@ public class TestNotificationListener {
 
 	@After
 	public void destroy() {
-		// if (controller != null)
-		// controller.unbind().destroy();
+		if (controller != null)
+			controller.unbind().destroy();
 	}
 
 	@Test
