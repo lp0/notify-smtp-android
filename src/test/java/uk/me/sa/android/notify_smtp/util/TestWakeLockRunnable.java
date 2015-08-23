@@ -31,11 +31,9 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.internal.ReflectionHelpers;
 import org.robolectric.shadows.ShadowPowerManager;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -49,8 +47,6 @@ public class TestWakeLockRunnable {
 	@Before
 	public void create() throws Exception {
 		MockitoAnnotations.initMocks(this);
-
-		ReflectionHelpers.setStaticFieldReflectively(Build.VERSION.class, "SDK_INT", 18);
 
 		ShadowPowerManager.reset();
 		pm = (PowerManager)Robolectric.application.getApplicationContext().getSystemService(Context.POWER_SERVICE);

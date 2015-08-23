@@ -33,13 +33,11 @@ import org.mockito.internal.util.collections.Sets;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.internal.ReflectionHelpers;
 import org.robolectric.shadows.ShadowPreferenceManager;
 
 import uk.me.sa.android.notify_smtp.R;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = 18)
@@ -51,8 +49,6 @@ public class TestValidatedPrefs {
 	@Before
 	public void create() throws Exception {
 		MockitoAnnotations.initMocks(this);
-
-		ReflectionHelpers.setStaticFieldReflectively(Build.VERSION.class, "SDK_INT", 18);
 
 		context = Robolectric.application.getApplicationContext();
 		sharedPreferences = ShadowPreferenceManager.getDefaultSharedPreferences(context);
