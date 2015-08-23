@@ -82,8 +82,7 @@ public class NotificationListener extends NotificationListenerService {
 	}
 
 	private void logNotification(StatusBarNotification sbn) {
-		Notification n = sbn.getNotification();
-		log.debug(" {}/{}@{}: category={} icon={} tickerText={}", sbn.getId(), sbn.getPackageName(), sbn.getPostTime(), n.category, n.icon, n.tickerText);
+		log.debug(" {} icon={}", sbn, sbn.getNotification().icon);
 	}
 
 	private void processNotification(StatusBarNotification sbn) {
