@@ -29,6 +29,7 @@ import uk.me.sa.android.notify_smtp.data.Prefs_;
 import uk.me.sa.android.notify_smtp.data.ValidatedPrefs;
 import uk.me.sa.android.notify_smtp.net.SendEmail;
 import uk.me.sa.android.notify_smtp.util.SequentialRetryRunnable;
+import uk.me.sa.android.notify_smtp.util.WakeLockRunnable;
 import android.app.Notification;
 import android.content.Context;
 import android.os.Build;
