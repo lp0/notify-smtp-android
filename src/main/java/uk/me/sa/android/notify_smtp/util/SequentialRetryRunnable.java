@@ -29,6 +29,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public class SequentialRetryRunnable implements Runnable {
 	protected static final Logger log = LoggerFactory.getLogger(SequentialRetryRunnable.class);
 	protected static final int ATTEMPTS = 3;
+	private static final int DELAY_MS = (int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
 	protected Callable<Boolean> callable;
 
@@ -51,7 +52,7 @@ public class SequentialRetryRunnable implements Runnable {
 					}
 
 					if (attempt < ATTEMPTS)
-						Thread.sleep((int)TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS));
+						Thread.sleep(DELAY_MS);
 				}
 			}
 		} catch (InterruptedException e) {
