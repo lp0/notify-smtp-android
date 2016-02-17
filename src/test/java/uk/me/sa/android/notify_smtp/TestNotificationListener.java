@@ -90,6 +90,12 @@ public class TestNotificationListener {
 	Notification nTalkMessage;
 
 	@Mock
+	StatusBarNotification sbnMessengerMessage;
+
+	@Mock
+	Notification nMessengerMessage;
+
+	@Mock
 	ValidatedPrefs validatedPrefs;
 
 	@Mock
@@ -126,6 +132,11 @@ public class TestNotificationListener {
 		Mockito.doReturn("com.google.android.talk").when(sbnTalkMessage).getPackageName();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
 			nTalkMessage.category = Notification.CATEGORY_MESSAGE;
+
+		Mockito.doReturn(nMessengerMessage).when(sbnMessengerMessage).getNotification();
+		Mockito.doReturn("com.google.android.apps.messaging").when(sbnMessengerMessage).getPackageName();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+			nMessengerMessage.category = Notification.CATEGORY_MESSAGE;
 
 		allMessages = new StatusBarNotification[] { sbnNormalMessage, sbnNormalOther, sbnMissedCallIcon, sbnTalkMessage };
 		boringMessages = new StatusBarNotification[] { sbnNormalMessage, sbnNormalOther };
@@ -274,6 +285,16 @@ public class TestNotificationListener {
 	}
 
 	@Test
+	public void posted_disabledMessengerMessage() throws Exception {
+		sharedPreferences.edit().putBoolean("enabled", false).commit();
+
+		service.onNotificationPosted(sbnMessengerMessage);
+
+		assertEquals(0, threads.join());
+		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
+	}
+
+	@Test
 	public void posted_enabledNormalOther() throws Exception {
 		sharedPreferences.edit().putBoolean("enabled", true).commit();
 
@@ -335,6 +356,31 @@ public class TestNotificationListener {
 		Mockito.doReturn(true).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
 
 		service.onNotificationPosted(sbnTalkMessage);
+
+		assertEquals(1, threads.join());
+		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(ValidatedPrefs.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
+		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
+		Mockito.verify(sendEmail).call();
+		Mockito.verifyNoMoreInteractions(sendEmail);
+	}
+
+	@Test
+	public void posted_enabledMessengerMessage_Inactive() throws Exception {
+		sharedPreferences.edit().putBoolean("enabled", true).commit();
+		Mockito.doReturn(false).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
+
+		service.onNotificationPosted(sbnMessengerMessage);
+
+		assertEquals(0, threads.join());
+		PowerMockito.verifyNoMoreInteractions(SendEmail.class);
+	}
+
+	@Test
+	public void posted_enabledMessengerMessage_Active() throws Exception {
+		sharedPreferences.edit().putBoolean("enabled", true).commit();
+		Mockito.doReturn(true).when(validatedPrefs).isActiveAt(Mockito.isA(Date.class));
+
+		service.onNotificationPosted(sbnMessengerMessage);
 
 		assertEquals(1, threads.join());
 		PowerMockito.verifyNew(SendEmail.class).withArguments(Mockito.isA(ValidatedPrefs.class), Mockito.eq("Message received"), Mockito.isA(Date.class));
