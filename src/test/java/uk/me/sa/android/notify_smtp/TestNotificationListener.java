@@ -109,7 +109,7 @@ public class TestNotificationListener {
 		Mockito.doReturn(nNormalOther).when(sbnNormalOther).getNotification();
 		Mockito.doReturn("com.example.system").when(sbnNormalOther).getPackageName();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-			nNormalMessage.category = Notification.CATEGORY_SYSTEM;
+			nNormalOther.category = Notification.CATEGORY_SYSTEM;
 
 		Mockito.doReturn(nNormalMessage).when(sbnNormalMessage).getNotification();
 		Mockito.doReturn("com.example.message").when(sbnNormalMessage).getPackageName();
@@ -119,13 +119,13 @@ public class TestNotificationListener {
 		Mockito.doReturn(nMissedCallIcon).when(sbnMissedCallIcon).getNotification();
 		Mockito.doReturn("com.google.android.dialer").when(sbnMissedCallIcon).getPackageName();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-			nNormalMessage.category = null;
+			nMissedCallIcon.category = null;
 		nMissedCallIcon.icon = android.R.drawable.stat_notify_missed_call;
 
 		Mockito.doReturn(nTalkMessage).when(sbnTalkMessage).getNotification();
 		Mockito.doReturn("com.google.android.talk").when(sbnTalkMessage).getPackageName();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-			nNormalMessage.category = Notification.CATEGORY_MESSAGE;
+			nTalkMessage.category = Notification.CATEGORY_MESSAGE;
 
 		allMessages = new StatusBarNotification[] { sbnNormalMessage, sbnNormalOther, sbnMissedCallIcon, sbnTalkMessage };
 		boringMessages = new StatusBarNotification[] { sbnNormalMessage, sbnNormalOther };
