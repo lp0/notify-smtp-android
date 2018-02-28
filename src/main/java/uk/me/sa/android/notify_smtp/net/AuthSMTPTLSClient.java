@@ -1,7 +1,7 @@
 /*
 	notify-smtp-android - Android Notify to SMTP Service
 
-	Copyright 2015  Simon Arlott
+	Copyright 2015,2018  Simon Arlott
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ public class AuthSMTPTLSClient extends AuthenticatingSMTPClient implements Proto
 	private String command;
 
 	public AuthSMTPTLSClient() throws NoSuchAlgorithmException {
-		super("TLS", "UTF-8");
+		super("TLS", true, "UTF-8");
 		setHostnameVerifier(HttpsURLConnection.getDefaultHostnameVerifier());
 		addProtocolCommandListener(this);
 	}
@@ -77,8 +77,8 @@ public class AuthSMTPTLSClient extends AuthenticatingSMTPClient implements Proto
 	}
 
 	@Override
-	public boolean auth(AUTH_METHOD method, String username, String password) throws IOException, NoSuchAlgorithmException, InvalidKeyException,
-			InvalidKeySpecException {
+	public boolean auth(AUTH_METHOD method, String username, String password)
+			throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
 		removeProtocolCommandListener(this);
 
 		boolean ok = super.auth(method, username, password);

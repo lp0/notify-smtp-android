@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>uk.me.sa</groupId>
 	<artifactId>notify-smtp-android</artifactId>
-	<version>1.2</version>
+	<version>1.3</version>
 	<packaging>apk</packaging>
 	<name>notify-smtp (Android)</name>
 	<description>Android Notify to SMTP Service</description>
